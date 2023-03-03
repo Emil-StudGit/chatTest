@@ -24,13 +24,13 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
   @SubscribeMessage('msgToServer')
   handleMessage(client: Socket, data: {author: string, chan: string, msg: string}): void {
-    this.logger.log(data);
+    // this.logger.log(data);
     this.server.to(data.chan).emit('msgToClient', data);
   }
 
   @SubscribeMessage('joinChan')
   handleJoinChan(client: Socket, chan: string) {
-    this.logger.log(chan);
+    // this.logger.log(chan);
     client.join(chan);
     client.emit('joinedChan', chan);
   }
@@ -43,7 +43,7 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
   @SubscribeMessage('createChan')
   handleCreateChan(client: Socket, chan: string) {
-    this.logger.log(chan);
+    // this.logger.log(chan);
     this.chans.push(chan);
     client.join(chan);
     client.emit('createdChan', chan);
@@ -55,7 +55,7 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   }
 
   @SubscribeMessage('check')
-  checking(client: Socket, data: Map<string, string[]>) {
+  checking(client: Socket, data: any) {
     this.logger.log('check');
     this.logger.log(data);
   }
