@@ -6,7 +6,6 @@ import CreateChanInput from './CreateChanInput'
 import JoinChanInput from './JoinChanInput'
 import ToggleChanInput from './ToggleChanInput'
 import Message from './Message'
-import Channel from './Channel'
 
 let activeChan: string = '';
 let chans : Map<string, string[]> = new Map<string, string[]>()
@@ -94,8 +93,7 @@ function App() {
   return (
     <>
       {" "}
-      <Channel channels = {channels}/>
-      <ToggleChanInput toggleChan={toggleChan}/>
+      <ToggleChanInput toggleChan={toggleChan} chans={channels}/>
       <JoinChanInput joinChan={joinChan}/>
       <CreateChanInput createChan={createChan}/>
       <MessageInput send={send}/>
