@@ -12,8 +12,8 @@ let chans : Map<string, string[]> = new Map<string, string[]>()
 
 function App() {
   const [socket, setSocket] = useState<Socket>();
+  const [publicChanList, setPublicChan] = useState<string[]>([]);
   const [messages, setMessages] = useState<string[]>([]);
-  const [channels, setChannels] = useState<Map<string, string[]>>(new Map<string, string[]>());
   
   const send = (value: string) => {
     socket?.emit("msgToServer", {author: socket?.id, chan: activeChan, msg: value})
@@ -37,6 +37,10 @@ function App() {
       setMessages(chans.get(activeChan) as string[]);
     }
   }
+  
+  const refreshList = () => {
+    socket?.emit("getListOfChan");
+  }
 
   useEffect(() => {
     const newSocket = io("http://localhost:8000");
@@ -53,7 +57,6 @@ function App() {
   const createChanListener = (chan: string) => {
     activeChan = chan;
     chans.set(chan, [""]);
-    setChannels(chans);
     setMessages(['']);
   }
 
@@ -65,8 +68,12 @@ function App() {
       return;
     }
     chans.set(chan, [""]);
-    setChannels(chans);
     setMessages(['']);
+  }
+
+  const refreshListListener = (chans: string[]) => {
+    setPublicChan(chans);
+    socket?.emit('check', publicChanList)
   }
 
   useEffect(() => {
@@ -90,11 +97,19 @@ function App() {
     }
   }, [joinChanListener])
 
+  useEffect(() => {
+    socket?.on("listOfChan", refreshListListener);
+    return () => {
+      socket?.off("listOfChan", refreshListListener);
+    }
+  }, [refreshListListener])
+
+
   return (
     <>
       {" "}
-      <ToggleChanInput toggleChan={toggleChan} chans={channels}/>
-      <JoinChanInput joinChan={joinChan}/>
+      <ToggleChanInput toggleChan={toggleChan} chans={chans}/>
+      <JoinChanInput joinChan={joinChan} publicChans={publicChanList}/>
       <CreateChanInput createChan={createChan}/>
       <MessageInput send={send}/>
       <Message messages = {messages}/>

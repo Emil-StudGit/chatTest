@@ -16,6 +16,7 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
   handleConnection(client: Socket, ...args: any[]) {
     this.logger.log(`Client connected: ${client.id}`);
+    client.emit('listOfChan', this.chans);
   }
 
   handleDisconnect(client: Socket) {
@@ -45,17 +46,19 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   handleCreateChan(client: Socket, chan: string) {
     // this.logger.log(chan);
     this.chans.push(chan);
+    this.server.emit('listOfChan', this.chans);
     client.join(chan);
     client.emit('createdChan', chan);
   }
+  
+  // @SubscribeMessage('getListOfChan')
+  // handleListOfChan(client: Socket) {
+  //   client.emit('listOfChan', this.chans);
+  // }
 
-  @SubscribeMessage('getListOfChan')
-  sendListOfChan(client: Socket) {
-    client.emit('listOfChan', this.chans);
-  }
 
   @SubscribeMessage('check')
-  checking(client: Socket, data: any) {
+  checking(client: Socket, data: string[]) {
     this.logger.log('check');
     this.logger.log(data);
   }
