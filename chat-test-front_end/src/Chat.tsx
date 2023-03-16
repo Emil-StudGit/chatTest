@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import './App.css'
 import io, { Socket } from 'socket.io-client'
 import Error from './Error'
@@ -7,13 +7,12 @@ import CreateChanInput from './CreateChanInput'
 import JoinChanInput from './JoinChanInput'
 import ToggleChanInput from './ToggleChanInput'
 import Message from './Message'
-import Chat from './Chat'
 
 let activeChan: string = '';
 let chans : Map<string, string[]> = new Map<string, string[]>()
 
-function App() {
-/*  const [socket, setSocket] = useState<Socket>();
+function Chat() {
+  const [socket, setSocket] = useState<Socket>();
   const [publicChanList, setPublicChan] = useState<string[]>([]);
   const [messages, setMessages] = useState<string[]>([]);
   const [errorToShow, setErrorToShow] = useState<boolean>(false);
@@ -43,6 +42,12 @@ function App() {
     }
   }
 
+  const leaveChan = (chan: string) => {
+    if (chans.get(chan) !== undefined) {
+      socket?.emit('leaveChan', chan);
+    }
+  }
+
   useEffect(() => {
     const newSocket = io("http://localhost:8000");
     setSocket(newSocket);
@@ -51,6 +56,27 @@ function App() {
   const errorListener = (error : string) => {
     setErrorToShow(true);
     setError(error);
+  }
+
+  const inviteListener = (chan : string) => {
+    setErrorToShow(true);
+    setError("You have been invited in channel : " + chan + " !\nIt is now visible in Join chan section.");
+    setPublicChan([...publicChanList, ...[chan]]);
+  }
+
+  const banListener = (chan : string) => {
+    chans.delete(chan);
+    if (activeChan === chan && chans.size > 0) {
+      for (let [key, msg] of chans.entries()) {
+        activeChan = key;
+        setMessages(chans.get(activeChan) as string[]);
+        return;
+      }
+    }
+    if (chans.size === 0) {
+      activeChan = '';
+      setMessages(['']);
+    }
   }
 
   const messageListener = (data: {author: string, chan: string, msg: string}) => {
@@ -66,15 +92,30 @@ function App() {
     setMessages(['']);
   }
 
-  const joinChanListener = (chan: string) => {
-    activeChan = chan;
+  const joinChanListener = (data : {chan: string, messages: string[]}) => {
+    activeChan = data.chan;
 
-    if (chans.get(chan) !== undefined) {
-      setMessages(chans.get(chan) as string[]);
+    if (chans.get(data.chan) !== undefined) {
+      setMessages(chans.get(data.chan) as string[]);
       return;
     }
-    chans.set(chan, [""]);
-    setMessages(['']);
+    chans.set(data.chan, data.messages);
+    setMessages(chans.get(data.chan) as string[]);
+  }
+
+  const leftChanListener = (chan : string) => {
+    chans.delete(chan);
+    if (activeChan === chan && chans.size > 0) {
+      for (let [key, msg] of chans.entries()) {
+        activeChan = key;
+        setMessages(chans.get(activeChan) as string[]);
+        return;
+      }
+    }
+    if (chans.size === 0) {
+      activeChan = '';
+      setMessages(['']);
+    }
   }
 
   const refreshListListener = (chans: string[]) => {
@@ -110,6 +151,27 @@ function App() {
   }, [joinChanListener])
 
   useEffect(() => {
+    socket?.on("leftChan", leftChanListener);
+    return () => {
+      socket?.off("leftChan", leftChanListener);
+    }
+  }, [leftChanListener])
+
+  useEffect(() => {
+    socket?.on("invited", inviteListener);
+    return () => {
+      socket?.off("invited", inviteListener);
+    }
+  }, [inviteListener])
+
+  useEffect(() => {
+    socket?.on("ban", banListener);
+    return () => {
+      socket?.off("ban", banListener);
+    }
+  }, [banListener])
+
+  useEffect(() => {
     socket?.on("listOfChan", refreshListListener);
     return () => {
       socket?.off("listOfChan", refreshListListener);
@@ -121,20 +183,13 @@ function App() {
     <>
       {" "}
       <Error isShown={errorToShow} error={error} close={setErrorToShow}/>
-      <ToggleChanInput toggleChan={toggleChan} chans={chans}/>
+      <ToggleChanInput toggleChan={toggleChan} leaveChan={leaveChan} chans={chans}/>
       <JoinChanInput joinChan={joinChan} publicChans={publicChanList}/>
       <CreateChanInput createChan={createChan}/>
       <MessageInput send={send}/>
       <Message messages = {messages}/>
     </>
   )
-*/
-  return (
-    <>
-      {" "}
-      <Chat/>
-    </>
-  )
 }
 
-export default App
+export default Chat

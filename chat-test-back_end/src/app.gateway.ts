@@ -26,12 +26,20 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   @SubscribeMessage('msgToServer')
   handleMessage(client: Socket, data: {author: string, chan: string, msg: string}): void {
     // this.logger.log(data);
+    if (this.chans.find(c => c === data.chan) === undefined) {
+      client.emit('error', 'No such channel !');
+      return;
+    }
     this.server.to(data.chan).emit('msgToClient', data);
   }
 
   @SubscribeMessage('joinChan')
   handleJoinChan(client: Socket, chan: string) {
     // this.logger.log(chan);
+    if (this.chans.find(c => c === chan) === undefined) {
+      client.emit('error', 'No such channel exist, you can create it !');
+      return;
+    }
     client.join(chan);
     client.emit('joinedChan', chan);
   }
@@ -44,18 +52,16 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
   @SubscribeMessage('createChan')
   handleCreateChan(client: Socket, chan: string) {
-    // this.logger.log(chan);
+    this.logger.log(chan);
+    if (this.chans.find(c => c === chan) !== undefined) {
+      client.emit('error', 'This channel already exist ! You can join it in the joinChan section');
+      return;
+    }
     this.chans.push(chan);
     this.server.emit('listOfChan', this.chans);
     client.join(chan);
     client.emit('createdChan', chan);
   }
-  
-  // @SubscribeMessage('getListOfChan')
-  // handleListOfChan(client: Socket) {
-  //   client.emit('listOfChan', this.chans);
-  // }
-
 
   @SubscribeMessage('check')
   checking(client: Socket, data: string[]) {

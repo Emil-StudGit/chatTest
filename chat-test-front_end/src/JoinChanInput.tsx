@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 export default function JoinChanInput(props: {joinChan: (value : string) => void, publicChans: string[]}) {
     const [value, setValue] = useState("");
+    //TO DO : add password field + auto select 1st option if exist
 
     return (
         <>
@@ -10,7 +11,7 @@ export default function JoinChanInput(props: {joinChan: (value : string) => void
             </select>
             <input
                 onChange={(e) => setValue(e.target.value)}
-                placeholder="..."
+                placeholder="select channel"
                 value={value}
             />
             <button onClick={() => props.joinChan(value)}>Join Channel</button>

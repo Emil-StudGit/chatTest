@@ -1,12 +1,17 @@
 import React, { useState } from "react";
 
-export default function ToggleChanInput(props : {toggleChan: (value : string) => void, chans : Map<string, string[]>}) {
+export default function ToggleChanInput(props : {toggleChan: (value : string) => void, leaveChan: (chan : string) => void, chans : Map<string, string[]>}) {
     const [value, setValue] = useState("");
+    //TO DO : add leave button + auto select 1st option if exist
 
     const chanJoined : string[] = [];
     props.chans.forEach((c, k) => {
         chanJoined.push(k)
     });
+
+    if (chanJoined.length > 0) {
+        setValue(chanJoined[0]);
+    }
 
     return (
         <>
@@ -14,6 +19,7 @@ export default function ToggleChanInput(props : {toggleChan: (value : string) =>
             {chanJoined.map(arrayChan => <option value={arrayChan}>{arrayChan}</option>)}
             </select>
             <button onClick={() => props.toggleChan(value)}>Select Channel</button>
+            <button onClick={() => props.leaveChan(value)}>Leave Channel</button>
         </>
     )
 }
