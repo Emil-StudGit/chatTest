@@ -29,10 +29,13 @@ function Chat() {
     socket?.emit("createChan", value)
   }
 
-  const joinChan = (value: string) => {
+  const joinChan = (value: string, password: string | null) => {
     if (chans.get(value) !== undefined)
       return;
-    socket?.emit("joinChan", value)
+    if (password === "") {
+      password = null;
+    }
+    socket?.emit("joinChan", {chan: value, password: password});
   }
 
   const toggleChan = (value: string) => {
