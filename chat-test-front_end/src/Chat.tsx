@@ -20,13 +20,13 @@ function Chat() {
   
   const send = (value: string) => {
     setErrorToShow(false);
-    socket?.emit("msgToServer", {author: socket?.id, chan: activeChan, msg: value})
+    socket?.emit("msgToServer", {author: socket?.id, chan: activeChan, msg: value});
   }
 
-  const createChan = (value: string) => {
-    if (chans.get(value) !== undefined)
+  const createChan = (title: string, isPrivate: boolean, password: string | undefined) => {
+    if (chans.get(title) !== undefined)
       return;
-    socket?.emit("createChan", value)
+    socket?.emit("createChan", {title: title, isPrivate: isPrivate, password: password});
   }
 
   const joinChan = (value: string, password: string | null) => {
@@ -64,7 +64,9 @@ function Chat() {
   const inviteListener = (chan : string) => {
     setErrorToShow(true);
     setError("You have been invited in channel : " + chan + " !\nIt is now visible in Join chan section.");
-    setPublicChan([...publicChanList, ...[chan]]);
+    if (publicChanList.findIndex((c) => { return c === chan}) === -1) {
+      setPublicChan([...publicChanList, ...[chan]]);
+    }
   }
 
   const banListener = (chan : string) => {
@@ -85,8 +87,9 @@ function Chat() {
   const messageListener = (data: {author: string, chan: string, msg: string}) => {
     let chanMessages : string[] = chans.get(data.chan) as string[];
     chans.set(data.chan, [...chanMessages, ...[data.author + ': ' + data.msg]]);
-    
-    setMessages(chans.get(activeChan) as string[]);
+    if (activeChan === data.chan) {
+      setMessages(chans.get(activeChan) as string[]);
+    }
   }
 
   const createChanListener = (chan: string) => {
